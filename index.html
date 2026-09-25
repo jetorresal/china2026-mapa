@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2F5D50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="China 2026">
+<title>Mapa del viaje · China 2026 (v2, itinerario v3)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1D2327; --muted:#5E676B; --mist:#EEF1EF; --panel:#FFFFFF; --line:#D5DCD8;
+  --jade:#2F5D50; --ochre:#A8741F; --indigo:#44558A; --slate:#666C70; --plum:#74498A;
+  --seal:#B3261E; --focus:#1B6FD1;
+  --sans:"Alegreya Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --han:"Noto Serif SC", "Songti SC", "SimSun", serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#E7ECE9; --muted:#A3ADA8; --mist:#171C1A; --panel:#1F2523; --line:#34403B; }
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{font-family:var(--sans);color:var(--ink);background:var(--mist);display:flex;overflow:hidden}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* Panel */
+#panel{width:380px;max-width:100%;height:100%;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:1000}
+.head{padding:18px 20px 10px}
+.head h1{margin:0;font-size:1.55rem;line-height:1.1;font-weight:800;letter-spacing:-.01em}
+.head p{margin:6px 0 0;color:var(--muted);font-size:.95rem;line-height:1.35}
+.scroll{overflow:auto;padding:0 20px 20px;flex:1}
+.block{margin-top:16px}
+.block h2{font-size:1rem;font-weight:700;margin:0 0 8px}
+.hint{color:var(--muted);font-size:.85rem;margin:-4px 0 8px}
+
+.days{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.day{border:1px solid var(--line);background:transparent;border-radius:6px;padding:5px 0 4px;cursor:pointer;text-align:center;line-height:1.05}
+.day b{display:block;font-size:1.05rem}
+.day span{display:block;font-size:.72rem;color:var(--muted)}
+.day[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.day[aria-pressed="true"] span{color:inherit;opacity:.8}
+.dayinfo{margin-top:8px;font-size:.92rem;min-height:1.3em}
+
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cat{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:5px 11px 5px 6px;background:transparent;cursor:pointer;font-size:.95rem}
+.cat i{width:18px;height:18px;border-radius:4px;display:inline-block}
+.cat small{color:var(--muted)}
+.cat[aria-pressed="false"]{opacity:.45}
+.cat[aria-pressed="false"] i{background:transparent!important;border:2px dashed var(--muted)}
+
+.cities{display:flex;flex-wrap:wrap;gap:6px}
+.city{border:none;background:var(--mist);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:.92rem}
+.city:hover{background:var(--line)}
+
+.toggle{display:flex;align-items:center;gap:10px;margin:6px 0;cursor:pointer;font-size:.97rem}
+.toggle input{width:18px;height:18px;accent-color:var(--jade)}
+
+#q{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+#list{list-style:none;margin:10px 0 0;padding:0}
+#list li{border-top:1px solid var(--line)}
+#list button{width:100%;text-align:left;background:none;border:none;padding:9px 2px;cursor:pointer;display:grid;grid-template-columns:16px 1fr auto;gap:10px;align-items:start}
+#list button:hover .n{text-decoration:underline}
+#list .dot{width:12px;height:12px;border-radius:3px;margin-top:5px}
+#list .n{font-weight:500;line-height:1.25}
+#list .z{display:block;font-family:var(--han);font-size:.85rem;color:var(--muted)}
+#list .d{font-size:.8rem;color:var(--muted);white-space:nowrap;margin-top:2px}
+.count{color:var(--muted);font-size:.88rem;margin-top:8px}
+.foot{padding:10px 20px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);line-height:1.35}
+
+/* Map */
+#map{flex:1;height:100%}
+.leaflet-container{font-family:var(--sans)}
+
+/* Seal-stamp markers */
+.stamp{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;line-height:1;box-shadow:0 1px 0 rgba(0,0,0,.25), 0 0 0 2px #fff;letter-spacing:-.02em}
+.stamp.must{box-shadow:0 0 0 2px #fff, 0 0 0 5px var(--seal);transform:rotate(-4deg)}
+.stamp.aprox{border:2px dashed rgba(255,255,255,.85)}
+.stamp.dim{opacity:.35}
+.order{position:absolute;top:-9px;right:-9px;background:var(--ink);color:#fff;border-radius:999px;min-width:20px;height:20px;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid #fff}
+
+.clus{width:40px;height:40px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;box-shadow:0 0 0 3px #fff, 0 0 0 5px rgba(29,35,39,.35)}
+.mustdot{color:var(--seal);font-size:.8rem;font-weight:700;margin-left:4px}
+/* Popup */
+.leaflet-popup-content{margin:14px 16px;width:290px!important;font-size:.95rem;line-height:1.35}
+.pp h3{margin:0 0 2px;font-size:1.15rem;line-height:1.2}
+.pp .zh{font-family:var(--han);font-size:1.25rem;margin:2px 0 8px}
+.pp .tag{display:inline-block;font-size:.78rem;padding:2px 7px;border-radius:4px;color:#fff;margin:0 4px 6px 0}
+.pp .lbl{color:#5E676B;font-size:.82rem;margin:8px 0 2px}
+.pp ul{margin:0;padding-left:16px;font-size:.9rem}
+.pp .row{font-size:.9rem;margin:3px 0}
+.pp .keto{background:#E8F3EC;color:#1E4D2E;border-radius:6px;padding:7px 9px;font-size:.88rem;margin:6px 0}
+.pp .note{font-size:.88rem;color:#444;margin:6px 0}
+.pp .warn{font-size:.8rem;color:#8a5a00;margin:4px 0}
+.pp .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pp .acts a,.pp .acts button{flex:1 1 auto;text-align:center;font-size:.88rem;padding:7px 8px;border-radius:6px;border:1px solid #cfd6d2;background:#fff;color:#1D2327;text-decoration:none;cursor:pointer}
+.pp .acts .taxi{background:var(--ink);color:#fff;border-color:var(--ink);flex-basis:100%}
+
+/* Taxi card */
+#taxi{position:fixed;inset:0;background:#fff;color:#111;z-index:3000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+#taxi[open]{display:flex}
+#taxi .big{font-family:var(--han);font-size:clamp(2.4rem,9vw,5.5rem);line-height:1.2;font-weight:700}
+#taxi .sub{margin-top:18px;font-size:1.1rem;color:#555}
+#taxi .ask{font-family:var(--han);font-size:1.6rem;margin-top:22px}
+#taxi button{margin-top:28px;padding:12px 26px;border-radius:8px;border:1px solid #111;background:#111;color:#fff;font-size:1rem;cursor:pointer}
+
+/* Mobile */
+#openPanel{display:none}
+@media (max-width:760px){
+  body{flex-direction:column}
+  #panel{position:fixed;left:0;right:0;bottom:0;height:auto;max-height:72vh;width:100%;border-right:none;border-top:1px solid var(--line);border-radius:14px 14px 0 0;transform:translateY(calc(100% - 64px));transition:transform .25s ease;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #panel.open{transform:none}
+  #map{height:100%}
+  #openPanel{display:block;position:absolute;left:0;right:0;top:0;height:64px;background:transparent;border:none;cursor:pointer;z-index:2}
+  .head::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:-8px auto 10px}
+  .leaflet-bottom{bottom:66px}
+  .head{position:relative}
+  .head h1{font-size:1.25rem}
+  .days{grid-template-columns:repeat(9,1fr)}
+}
+@media (prefers-reduced-motion:reduce){ #panel{transition:none} }
+</style>
+</head>
+<body>
+
+<aside id="panel" aria-label="Filtros del mapa">
+  <div class="head">
+    <button id="openPanel" aria-expanded="false" aria-controls="panel"><span class="sr" style="position:absolute;left:-9999px">Abrir filtros</span></button>
+    <h1>China 2026, mapa del viaje</h1>
+    <p>26 oct – 12 nov · 7 destinos · basado en el itinerario v3</p>
+  </div>
+  <div class="scroll">
+    <div class="block">
+      <h2>Día del itinerario</h2>
+      <p class="hint">Elija uno o varios días. Sin selección se ve todo el viaje.</p>
+      <div class="days" id="days"></div>
+      <div class="dayinfo" id="dayinfo"></div>
+    </div>
+
+    <div class="block">
+      <h2>Capas</h2>
+      <div class="cats" id="cats"></div>
+      <label class="toggle"><input type="checkbox" id="must"> Solo imprescindibles</label>
+      <label class="toggle"><input type="checkbox" id="route" checked> Unir los puntos del día en orden</label>
+      <label class="toggle"><input type="checkbox" id="trip" checked> Ruta entre ciudades</label>
+    </div>
+
+    <div class="block">
+      <h2>Ir a</h2>
+      <div class="cities" id="cities"></div>
+    </div>
+
+    <div class="block">
+      <h2>Lugares</h2>
+      <input id="q" type="search" placeholder="Buscar en español o chino" aria-label="Buscar lugar">
+      <div class="count" id="count"></div>
+      <ul id="list"></ul>
+    </div>
+  </div>
+  <div class="foot">Borde rojo = imprescindible. Borde punteado = ubicación aproximada (±1 km); use el botón Amap para llegar puerta a puerta. USD calculado a 6,80 CNY.</div>
+</aside>
+
+<div id="map" role="region" aria-label="Mapa"></div>
+
+<div id="taxi" role="dialog" aria-modal="true" aria-labelledby="taxiName">
+  <div class="big" id="taxiName"></div>
+  <div class="ask">请带我去这里，谢谢</div>
+  <div class="sub" id="taxiSub"></div>
+  <button id="taxiClose">Cerrar</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const RATE = 6.80;
+
+const CATS = {
+  turismo:    {label:"Turismo",          color:"#2F5D50"},
+  comida:     {label:"Comida (keto)",    color:"#A8741F"},
+  hotel:      {label:"Hoteles",          color:"#44558A"},
+  transporte: {label:"Aeropuertos y trenes", color:"#666C70"},
+  negocio:    {label:"Negocios Yiwu",    color:"#74498A"},
+  opcional:   {label:"Opcional",         color:"#8E9A95"}
+};
+
+const DAYS = [
+  {n:1, f:"26 oct", w:"lun", c:"Shanghái", t:"Llegada, Bund al atardecer"},
+  {n:2, f:"27 oct", w:"mar", c:"Shanghái", t:"Yuyuan, Concesión Francesa, Torre de Shanghái"},
+  {n:3, f:"28 oct", w:"mié", c:"Shanghái → Zhangjiajie", t:"Museo y vuelo de la tarde"},
+  {n:4, f:"29 oct", w:"jue", c:"Zhangjiajie", t:"Parque Forestal: Yuanjiajie y Tianzi"},
+  {n:5, f:"30 oct", w:"vie", c:"Zhangjiajie → Furong", t:"Tianmen y Furong iluminado"},
+  {n:6, f:"31 oct", w:"sáb", c:"Furong → Chongqing", t:"Cascada de día, Hongyadong y hot pot"},
+  {n:7, f:"1 nov",  w:"dom", c:"Chongqing", t:"Teleférico, museo, Liziba, crucero"},
+  {n:8, f:"2 nov",  w:"lun", c:"Chongqing → Xi'an", t:"Muralla en bici, Barrio Musulmán"},
+  {n:9, f:"3 nov",  w:"mar", c:"Xi'an", t:"Guerreros de Terracota, Datang"},
+  {n:10,f:"4 nov",  w:"mié", c:"Xi'an → Pekín", t:"Tren y pato laqueado"},
+  {n:11,f:"5 nov",  w:"jue", c:"Pekín", t:"Tiananmen, Ciudad Prohibida, hutongs"},
+  {n:12,f:"6 nov",  w:"vie", c:"Pekín", t:"Gran Muralla de Mutianyu"},
+  {n:13,f:"7 nov",  w:"sáb", c:"Pekín → Yiwu", t:"Tren directo y mercado nocturno"},
+  {n:14,f:"8 nov",  w:"dom", c:"Yiwu", t:"Fotang y Palacio Qin (Hengdian)"},
+  {n:15,f:"9 nov",  w:"lun", c:"Yiwu", t:"Mercado D1 y D6"},
+  {n:16,f:"10 nov", w:"mar", c:"Yiwu", t:"Mercado D3, D5, D4 y agente"},
+  {n:17,f:"11 nov", w:"mié", c:"Yiwu → Shanghái", t:"Cierre con proveedores, cena de despedida"},
+  {n:18,f:"12 nov", w:"jue", c:"Shanghái", t:"Museo Este y vuelo de regreso 18:15"}
+];
+
+const CITIES = [
+  ["Shanghái",[31.225,121.50],12],["Zhangjiajie",[29.23,110.47],10],["Furong",[28.7431,109.9462],15],
+  ["Chongqing",[29.558,106.565],13],["Xi'an",[34.30,109.05],10],["Pekín",[40.10,116.45],9],["Yiwu",[29.27,120.15],11]
+];
+const TRIP = [[31.2400,121.4905],[29.3470,110.5300],[28.7431,109.9462],[29.5578,106.5773],[34.2610,108.9430],[39.9120,116.4110],[29.3397,120.1111],[31.2380,121.5000]];
+
+/* v: [día, hora, qué se hace ahí]. ap = ubicación aproximada */
+const P = [
+ {n:"Aeropuerto Pudong T2", z:"上海浦东国际机场 T2航站楼", c:"Shanghái", k:"transporte", ll:[31.1512,121.8030], v:[[1,"09:15","Llegada vuelo internacional"],[3,"14:45","Vuelo a Zhangjiajie (terminal por confirmar)"],[18,"14:30","Vuelo internacional 18:15"]], note:"El 12-nov salir del hotel a más tardar 13:30."},
+ {n:"Hotel zona Bund / Nanjing Rd Este", z:"外滩 / 南京东路", c:"Shanghái", k:"hotel", ll:[31.2400,121.4850], ap:1, v:[[1,"12:30","Check-in"],[3,"11:15","Check-out"]], note:"Noches del 26 y 27 de octubre. Marcador en la zona; ubicar el hotel definitivo al reservar."},
+ {n:"Jia Jia Tang Bao", z:"佳家汤包（黄河路）", c:"Shanghái", k:"comida", ll:[31.2375,121.4690], ap:1, v:[[1,"12:45","Almuerzo"]], cost:60, keto:"Pollo blanco cocido (白切鸡) o camarones salteados (清炒虾仁). Evitar las empanadillas."},
+ {n:"Nanjing Road peatonal", z:"南京东路步行街", c:"Shanghái", k:"turismo", ll:[31.2360,121.4780], v:[[1,"16:30","Paseo hacia el Bund"]]},
+ {n:"El Bund", z:"外滩", c:"Shanghái", k:"turismo", must:1, ll:[31.2400,121.4905], v:[[1,"17:30","Atardecer y luces"],[17,"20:30","Último paseo nocturno"]], note:"Atardecer ~17:15; luces del skyline desde ~18:00."},
+ {n:"Jardín Yuyuan y Templo del Dios de la Ciudad", z:"豫园 / 城隍庙", c:"Shanghái", k:"turismo", must:1, ll:[31.2272,121.4921], v:[[2,"09:00","Visita a la apertura"]], cost:40, res:"Recomendable (online)"},
+ {n:"Nanxiang Mantou Dian", z:"南翔馒头店", c:"Shanghái", k:"comida", ll:[31.2270,121.4908], ap:1, v:[[2,"11:15","Almuerzo"]], cost:80, keto:"Camarones salteados (清炒虾仁) y verduras con ajo (蒜蓉青菜)."},
+ {n:"Wukang Mansion · Concesión Francesa", z:"武康大楼 / 安福路", c:"Shanghái", k:"turismo", ll:[31.2046,121.4370], v:[[2,"13:00","Paseo y café"]], cost:60},
+ {n:"Torre de Shanghái (mirador)", z:"上海中心大厦", c:"Shanghái", k:"turismo", must:1, ll:[31.2335,121.5055], v:[[2,"17:30","Atardecer pisos 118–119"]], cost:180, res:"Sí (horario ~17:00)"},
+ {n:"IFC Mall Pudong", z:"国金中心", c:"Shanghái", k:"comida", ll:[31.2370,121.5010], v:[[2,"19:00","Cena"]], cost:150, keto:"Steakhouse (res) o pescado al vapor, sin arroz."},
+ {n:"Museo de Shanghái (Plaza del Pueblo)", z:"上海博物馆（人民广场馆）", c:"Shanghái", k:"opcional", ll:[31.2285,121.4755], v:[[3,"09:00","Visita opcional"]], res:"Reserva gratuita"},
+ {n:"Estación Shanghái Hongqiao", z:"上海虹桥站", c:"Shanghái", k:"transporte", ll:[31.1945,121.3200], v:[[17,"16:00","Llegada desde Yiwu"]], note:"Metro L2 directo a Lujiazui (~50 min)."},
+ {n:"Hotel zona Lujiazui", z:"陆家嘴", c:"Shanghái", k:"hotel", ll:[31.2380,121.5000], ap:1, v:[[17,"17:15","Check-in"],[18,"12:45","Check-out"]], note:"Noche del 11-nov, con vista al río."},
+ {n:"Museo de Shanghái Este", z:"上海博物馆东馆", c:"Shanghái", k:"turismo", ll:[31.2275,121.5440], ap:1, v:[[18,"09:30","Última visita"]], res:"Sí (reserva)"},
+
+ {n:"Aeropuerto Hehua (Zhangjiajie)", z:"张家界荷花国际机场", c:"Zhangjiajie", k:"transporte", ll:[29.1028,110.4430], ap:1, v:[[3,"19:45","Llegada del vuelo"]], note:"Traslado a Wulingyuan ~50 min."},
+ {n:"Hotel en Wulingyuan", z:"武陵源（标志门附近）", c:"Zhangjiajie", k:"hotel", ll:[29.3470,110.5300], ap:1, v:[[3,"21:15","Check-in"],[5,"07:45","Check-out"]], note:"Noches del 28 y 29 de octubre."},
+ {n:"Entrada Wulingyuan al Parque Forestal", z:"武陵源门票站（标志门）", c:"Zhangjiajie", k:"turismo", ll:[29.3460,110.5315], ap:1, v:[[4,"07:30","Ingreso (entrada válida 4 días)"]], cost:225, res:"Sí (online, pasaporte)"},
+ {n:"Ascensor Bailong", z:"百龙天梯", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.3515,110.4615], v:[[4,"08:15","Subida de 326 m"]], cost:65},
+ {n:"Yuanjiajie · Montaña Aleluya (Avatar)", z:"袁家界（哈利路亚山）", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.3545,110.4540], ap:1, v:[[4,"09:00","Circuito ~3 km"],[4,"11:30","Almuerzo en área de servicio"]], keto:"Comida del parque = arroz y fideos: llevar huevos de té (茶叶蛋), salchichas y nueces."},
+ {n:"Tianzi Shan", z:"天子山（御笔峰）", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.3950,110.4600], ap:1, v:[[4,"13:00","Miradores; baja en teleférico 15:00"]], cost:72},
+ {n:"Charming Xiangxi (espectáculo)", z:"魅力湘西大剧院", c:"Zhangjiajie", k:"opcional", ll:[29.3480,110.5520], ap:1, v:[[4,"20:10","Opcional"]], cost:200, res:"Sí", keto:"Cena previa: sanxiaguo sin fideos ni papa (三下锅)."},
+ {n:"Estación Zhangjiajie Oeste", z:"张家界西站", c:"Zhangjiajie", k:"transporte", ll:[29.17086,110.45699], v:[[5,"08:45","Consigna de maletas"],[5,"16:05","Tren a Furongzhen ~16:40"],[6,"11:25","Conexión a Chongqing 12:30"]], note:"No confundir con la estación 'Zhangjiajie' (trenes lentos). Almuerzo del 31-oct aquí.", keto:"Día 6: comida de estación = arroz; llevar snacks keto."},
+ {n:"Teleférico de Tianmen (estación inferior)", z:"天门山索道下站", c:"Zhangjiajie", k:"turismo", ll:[29.1170,110.4790], ap:1, v:[[5,"09:30","Subida (7,5 km)"],[5,"15:45","Regreso"]], cost:275, res:"Sí (online, horario ~09:30)"},
+ {n:"Montaña Tianmen y Puerta del Cielo", z:"天门山 / 天门洞", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.0530,110.4810], ap:1, v:[[5,"10:00","Pasarelas de vidrio"],[5,"12:15","Almuerzo en la cima"],[5,"13:15","Puerta del Cielo"]], cost:5, keto:"Opciones limitadas: snacks propios + huevos o pollo si hay."},
+
+ {n:"Pueblo antiguo de Furong", z:"芙蓉镇", c:"Furong", k:"turismo", must:1, ll:[28.7431,109.9462], v:[[5,"19:45","Cascada iluminada de noche"],[6,"08:15","Sendero detrás de la cascada"]], cost:80, res:"Entrada al área escénica (verificar)", note:"La estación Furongzhen está a ~6 km (10–15 min en taxi).", keto:"Cena Tujia: cerdo ahumado con ají (腊肉炒辣椒) o pescado a la parrilla, sin azúcar (不要糖)."},
+ {n:"Hotel / hostal en Furong", z:"芙蓉镇景区内（瀑布景观）民宿", c:"Furong", k:"hotel", ll:[28.7440,109.9472], ap:1, v:[[5,"17:30","Check-in"],[6,"10:15","Check-out"]], note:"Elegir con vista a la cascada."},
+
+ {n:"Estación Chongqing Este / Norte", z:"重庆东站 / 重庆北站", c:"Chongqing", k:"transporte", ll:[29.5150,106.6600], ap:1, v:[[6,"15:00","Llegada desde Zhangjiajie"]], note:"Marcador aproximado; la estación depende del tren elegido."},
+ {n:"Hotel zona Jiefangbei", z:"解放碑（渝中区）", c:"Chongqing", k:"hotel", ll:[29.5578,106.5773], v:[[6,"16:00","Check-in"],[8,"08:30","Check-out"]], note:"Noches del 31-oct y 1-nov."},
+ {n:"Hongyadong", z:"洪崖洞", c:"Chongqing", k:"turismo", must:1, ll:[29.5630,106.5790], v:[[6,"18:00","Iluminado de noche"]], note:"Mejor foto desde el puente Qiansimen."},
+ {n:"Hot pot de Chongqing", z:"重庆火锅（解放碑）", c:"Chongqing", k:"comida", ll:[29.5592,106.5760], ap:1, v:[[6,"19:15","Cena"]], cost:120, keto:"IDEAL keto: res, cordero, cerdo, camarón y pescado + verduras. Olla mitad suave (鸳鸯锅). Salsa: aceite de sésamo con ajo."},
+ {n:"Teleférico del río Yangtsé", z:"长江索道（新华路站）", c:"Chongqing", k:"turismo", ll:[29.5580,106.5850], ap:1, v:[[7,"08:30","Ir temprano (domingo)"]], cost:20},
+ {n:"Shibati", z:"十八梯", c:"Chongqing", k:"turismo", ll:[29.5535,106.5760], ap:1, v:[[7,"10:00","Barrio en escalinatas"]], keto:"Almuerzo 11:30: pollo picante seco sin rebozar (辣子鸡，不要淀粉)."},
+ {n:"Museo de las Tres Gargantas", z:"重庆中国三峡博物馆", c:"Chongqing", k:"turismo", ll:[29.5615,106.5500], v:[[7,"13:15","Visita"]], res:"Reserva gratuita"},
+ {n:"Liziba: el tren que atraviesa un edificio", z:"李子坝轻轨穿楼观景平台", c:"Chongqing", k:"turismo", must:1, ll:[29.5530,106.5340], v:[[7,"15:30","Mirador frente a la estación"]]},
+ {n:"Muelle Chaotianmen · crucero Dos Ríos", z:"朝天门码头 两江游", c:"Chongqing", k:"turismo", ll:[29.5670,106.5880], v:[[7,"20:00","Crucero nocturno"]], cost:150, res:"Sí (online)", keto:"Cena 18:00: pescado a la parrilla (烤鱼) sin azúcar ni fideos."},
+ {n:"Aeropuerto Jiangbei", z:"重庆江北国际机场", c:"Chongqing", k:"transporte", ll:[29.7192,106.6417], v:[[8,"10:00","Vuelo a Xi'an"]]},
+
+ {n:"Aeropuerto Xianyang", z:"西安咸阳国际机场", c:"Xi'an", k:"transporte", ll:[34.4471,108.7516], v:[[8,"13:30","Llegada"]], note:"Al centro ~60 min."},
+ {n:"Hotel junto a la Torre de la Campana", z:"钟楼附近（城墙内）", c:"Xi'an", k:"hotel", ll:[34.2610,108.9430], ap:1, v:[[8,"15:15","Check-in"],[10,"08:00","Check-out"]], note:"Noches del 2 y 3 de noviembre."},
+ {n:"Muralla de Xi'an (Puerta Sur)", z:"西安城墙 永宁门（南门）", c:"Xi'an", k:"turismo", must:1, ll:[34.2510,108.9430], v:[[8,"16:00","Vuelta en bicicleta al atardecer"]], cost:100},
+ {n:"Barrio Musulmán", z:"回民街", c:"Xi'an", k:"comida", ll:[34.2640,108.9400], v:[[8,"18:30","Cena de calle"]], cost:80, keto:"Brochetas de cordero o res al comino (羊肉串 / 牛肉串), sin pan."},
+ {n:"Guerreros de Terracota", z:"秦始皇帝陵博物院（兵马俑）", c:"Xi'an", k:"turismo", must:1, ll:[34.3848,109.2785], v:[[9,"08:45","Fosas 1, 3 y 2"]], cost:120, res:"Sí (online, pasaporte)", keto:"Almuerzo 12:30: cordero o res sin fideos."},
+ {n:"Gran Pagoda de la Oca Salvaje", z:"大雁塔", c:"Xi'an", k:"turismo", ll:[34.2190,108.9640], v:[[9,"17:15","Plaza norte"]]},
+ {n:"Datang Everbright City", z:"大唐不夜城", c:"Xi'an", k:"turismo", ll:[34.2120,108.9640], ap:1, v:[[9,"18:30","Cena y paseo nocturno"]], keto:"Parrilla (烧烤): res, pollo, camarón y cordero."},
+ {n:"Estación Xi'an Norte", z:"西安北站", c:"Xi'an", k:"transporte", ll:[34.3760,108.9390], ap:1, v:[[10,"09:00","Tren a Pekín ~10:00"]], keto:"Llevar snacks keto para el tren."},
+
+ {n:"Estación Pekín Oeste", z:"北京西站", c:"Pekín", k:"transporte", ll:[39.8950,116.3220], v:[[10,"14:30","Llegada desde Xi'an"]]},
+ {n:"Hotel zona Wangfujing", z:"王府井（东城区）", c:"Pekín", k:"hotel", ll:[39.9120,116.4110], ap:1, v:[[10,"15:15","Check-in"],[13,"07:45","Check-out"]], note:"Noches del 4, 5 y 6 de noviembre."},
+ {n:"Siji Minfu (pato laqueado)", z:"四季民福（故宫店）", c:"Pekín", k:"comida", ll:[39.9135,116.4020], ap:1, v:[[10,"18:00","Cena"]], cost:180, keto:"Cordero asado o res con cebollín (葱爆牛肉). Si prueban el pato: sin crepes ni salsa hoisin."},
+ {n:"Plaza de Tiananmen", z:"天安门广场", c:"Pekín", k:"turismo", ll:[39.9030,116.3915], v:[[11,"08:15","Con pasaporte"]], res:"Verificar requisito de reserva"},
+ {n:"Ciudad Prohibida (Puerta Meridiana)", z:"故宫博物院（午门）", c:"Pekín", k:"turismo", must:1, ll:[39.9135,116.3912], v:[[11,"08:45","Entrada por el sur, salida por el norte"]], cost:50, res:"SÍ: abre 7 días antes, 20:00 hora Pekín", note:"Cerrada los lunes."},
+ {n:"Parque Jingshan", z:"景山公园", c:"Pekín", k:"turismo", ll:[39.9255,116.3965], v:[[11,"12:30","Vista panorámica"]], cost:2, keto:"Almuerzo 13:15: res con cebollín (葱爆牛肉) o cordero al comino (孜然羊肉)."},
+ {n:"Shichahai / Houhai", z:"什刹海（后海）", c:"Pekín", k:"turismo", ll:[39.9400,116.3850], ap:1, v:[[11,"16:45","Hutongs al atardecer"]]},
+ {n:"Nanluoguxiang", z:"南锣鼓巷", c:"Pekín", k:"turismo", ll:[39.9370,116.4030], ap:1, v:[[11,"17:45","Callejón tradicional"]]},
+ {n:"Donglaishun (olla de cordero)", z:"东来顺", c:"Pekín", k:"comida", ll:[39.9142,116.4105], ap:1, v:[[11,"19:00","Cena"]], cost:150, keto:"IDEAL keto: cordero y res en caldo claro; salsa de sésamo con moderación."},
+ {n:"Gran Muralla de Mutianyu", z:"慕田峪长城", c:"Pekín", k:"turismo", must:1, ll:[40.4319,116.5704], v:[[12,"09:15","Teleférico, torres 14–23, tobogán"],[12,"12:20","Almuerzo en el pueblo"]], cost:195, res:"Auto privado + entradas", keto:"Trucha a la parrilla (虹鳟鱼), especialidad de Mutianyu."},
+ {n:"Teatro Chaoyang (acróbatas)", z:"朝阳剧场", c:"Pekín", k:"opcional", ll:[39.9180,116.4590], ap:1, v:[[12,"19:15","Espectáculo opcional"]], cost:280, res:"Sí", keto:"Cena previa: parrilla o steakhouse."},
+ {n:"Estación Pekín Sur", z:"北京南站", c:"Pekín", k:"transporte", ll:[39.8650,116.3790], v:[[13,"08:45","Tren directo a Yiwu ~09:40"]], keto:"6,5 h de tren: llevar snacks keto."},
+
+ {n:"Estación de Yiwu", z:"义乌站", c:"Yiwu", k:"transporte", ll:[29.38083,120.03778], v:[[13,"16:15","Llegada"],[17,"13:30","Tren a Shanghái ~14:10"]], note:"Al norte de la ciudad: ~30–40 min en taxi al mercado."},
+ {n:"Hotel junto al Mercado Internacional", z:"国际商贸城附近（福田）", c:"Yiwu", k:"hotel", ll:[29.3360,120.1060], ap:1, v:[[13,"16:45","Check-in"],[17,"12:00","Check-out"]], note:"Noches del 7 al 10 de noviembre."},
+ {n:"Mercado nocturno Binwang", z:"宾王夜市", c:"Yiwu", k:"comida", ll:[29.3060,120.0770], ap:1, v:[[13,"18:30","Cena y paseo"]], cost:80, keto:"Kebab de Oriente Medio al plato (res, cordero, pollo), sin pan ni arroz."},
+ {n:"Pueblo antiguo de Fotang", z:"佛堂古镇", c:"Yiwu", k:"turismo", ll:[29.2170,120.0400], ap:1, v:[[14,"09:00","Calle vieja, casas Ming y Qing"],[14,"11:15","Almuerzo"]], note:"Entrada libre.", keto:"Res o cerdo salteado con verduras, sin azúcar (不要糖)."},
+ {n:"Hengdian · Palacio del Emperador Qin", z:"横店影视城·秦王宫", c:"Yiwu", k:"turismo", ll:[29.1791,120.2981], ap:1, v:[[14,"13:00","Set del film Hero"]], cost:200, res:"Sí (Trip.com)", note:"Horario de invierno 8:30–16:30."},
+ {n:"Mercado Internacional de Yiwu (Futian)", z:"义乌国际商贸城（福田市场）", c:"Yiwu", k:"negocio", must:1, ll:[29.33972,120.11111], v:[[15,"09:15","D1 bisutería · D6 moda y belleza"],[16,"09:00","D3 cuidado personal · D5 moto y mascotas · D4 moda"],[17,"08:30","Cierre con proveedores"]], note:"Marcador en el centro del complejo (distritos 1 a 6). Pedir en información el plano de cada distrito.", keto:"Almuerzo: restaurantes árabes y turcos junto al mercado, kebab al plato."},
+ {n:"Lago Xiuhu y pagoda Da'an", z:"绣湖公园 / 大安寺塔", c:"Yiwu", k:"opcional", ll:[29.3090,120.0730], ap:1, v:[[15,"20:00","Paseo nocturno opcional"]]}
+];
+
+/* ---------- map ---------- */
+const map = L.map("map",{zoomControl:true, worldCopyJump:true}).setView([33,113],5);
+const base = {
+  "Mapa claro": L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}),
+  "OpenStreetMap": L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; OpenStreetMap'}),
+  "Satélite": L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:'Imagery &copy; Esri'})
+};
+base["Mapa claro"].addTo(map);
+L.control.layers(base,null,{position:"topright"}).addTo(map);
+L.control.scale({imperial:false}).addTo(map);
+
+const tripLine = L.polyline(TRIP,{color:"#1D2327",weight:2,opacity:.55,dashArray:"6 8"}).addTo(map);
+const routeLayer = L.layerGroup().addTo(map);
+const plainLayer = L.layerGroup().addTo(map);
+const clusterLayer = L.markerClusterGroup({maxClusterRadius:45, disableClusteringAtZoom:12, showCoverageOnHover:false,
+  iconCreateFunction:c=>L.divIcon({className:"",iconSize:[40,40],html:`<div class="clus">${c.getChildCount()}</div>`})});
+map.addLayer(clusterLayer);
+let markerLayer = clusterLayer;
+
+const state = {days:new Set(), cats:new Set(Object.keys(CATS)), must:false, q:"", route:true, trip:true};
+
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const usd = cny => cny ? "US$ " + (cny/RATE).toFixed(cny/RATE < 20 ? 2 : 0) : "";
+
+function daysLabel(p){ return [...new Set(p.v.map(v=>v[0]))].map(d=>"D"+d).join(" · "); }
+
+function visible(p){
+  if(!state.cats.has(p.k)) return false;
+  if(state.must && !p.must) return false;
+  if(state.days.size && !p.v.some(v=>state.days.has(v[0]))) return false;
+  if(state.q){
+    const q = state.q.toLowerCase();
+    if(!(p.n.toLowerCase().includes(q) || p.z.includes(state.q) || p.c.toLowerCase().includes(q))) return false;
+  }
+  return true;
+}
+
+function icon(p, order){
+  const days = state.days.size ? p.v.filter(v=>state.days.has(v[0])).map(v=>v[0]) : p.v.map(v=>v[0]);
+  const uniq = [...new Set(days)];
+  const txt = uniq.length > 2 ? uniq[0] + "+" : uniq.join("·");
+  const cls = "stamp" + (p.must ? " must" : "") + (p.ap ? " aprox" : "");
+  const badge = order ? `<span class="order">${order}</span>` : "";
+  return L.divIcon({className:"", iconSize:[34,34], iconAnchor:[17,17], popupAnchor:[0,-18],
+    html:`<div style="position:relative"><div class="${cls}" style="background:${CATS[p.k].color}">${txt}</div>${badge}</div>`});
+}
+
+function popup(p){
+  const cat = CATS[p.k];
+  const visits = p.v.map(v=>`<li>Día ${v[0]} (${DAYS[v[0]-1].w} ${DAYS[v[0]-1].f}), ${v[1]}: ${esc(v[2])}</li>`).join("");
+  const cost = p.cost ? `<div class="row"><b>Costo por persona:</b> ${p.cost} CNY (${usd(p.cost)})</div>` : "";
+  const res = p.res ? `<div class="row"><b>Reserva:</b> ${esc(p.res)}</div>` : "";
+  const gm = `https://www.google.com/maps/search/?api=1&query=${p.ll[0]},${p.ll[1]}`;
+  const am = `https://uri.amap.com/marker?position=${p.ll[1]},${p.ll[0]}&name=${encodeURIComponent(p.z)}&coordinate=wgs84&callnative=1`;
+  return `<div class="pp">
+    <span class="tag" style="background:${cat.color}">${cat.label}</span>${p.must?'<span class="tag" style="background:#B3261E">Imprescindible</span>':''}
+    <h3>${esc(p.n)}</h3><div class="zh">${esc(p.z)}</div>
+    <div class="lbl">Cuándo</div><ul>${visits}</ul>${cost}${res}
+    ${p.keto?`<div class="keto"><b>Keto:</b> ${esc(p.keto)}</div>`:""}
+    ${p.note?`<div class="note">${esc(p.note)}</div>`:""}
+    ${p.ap?`<div class="warn">Ubicación aproximada: para llegar use Amap.</div>`:""}
+    <div class="acts">
+      <button class="taxi" data-taxi="${P.indexOf(p)}">Mostrar al taxista</button>
+      <a href="${am}" target="_blank" rel="noopener">Abrir en Amap</a>
+      <a href="${gm}" target="_blank" rel="noopener">Abrir en Google Maps</a>
+    </div></div>`;
+}
+
+const markers = new Map();
+function render(){
+  plainLayer.clearLayers(); clusterLayer.clearLayers(); routeLayer.clearLayers(); markers.clear();
+  markerLayer = state.days.size ? plainLayer : clusterLayer;
+  const vis = P.filter(visible);
+
+  // order within selected day(s)
+  const orderMap = new Map();
+  if(state.days.size){
+    const stops = [];
+    [...state.days].sort((a,b)=>a-b).forEach(d=>{
+      P.forEach(p=>p.v.forEach(v=>{ if(v[0]===d && visible(p)) stops.push({p,d,t:v[1]}); }));
+    });
+    stops.sort((a,b)=> a.d-b.d || a.t.localeCompare(b.t));
+    stops.forEach(s=>{ if(!orderMap.has(s.p)) orderMap.set(s.p, orderMap.size+1); });
+    if(state.route && stops.length>1){
+      L.polyline(stops.map(s=>s.p.ll),{color:"#1D2327",weight:3,opacity:.8}).addTo(routeLayer);
+    }
+  }
+
+  vis.forEach(p=>{
+    const m = L.marker(p.ll,{icon:icon(p, orderMap.get(p)), title:p.n, keyboard:true, riseOnHover:true})
+      .bindPopup(popup(p),{maxWidth:320}).addTo(markerLayer);
+    markers.set(p,m);
+  });
+
+  if(state.trip) tripLine.addTo(map); else map.removeLayer(tripLine);
+
+  // list
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const sorted = state.days.size ? vis.slice().sort((a,b)=>(orderMap.get(a)||99)-(orderMap.get(b)||99)) : vis;
+  sorted.forEach(p=>{
+    const li = document.createElement("li");
+    const o = orderMap.get(p);
+    li.innerHTML = `<button type="button"><span class="dot" style="background:${CATS[p.k].color}"></span>
+      <span><span class="n">${o?o+". ":""}${esc(p.n)}${p.must?'<span class="mustdot">imprescindible</span>':""}</span><span class="z">${esc(p.z)}</span></span>
+      <span class="d">${daysLabel(p)}</span></button>`;
+    li.querySelector("button").addEventListener("click",()=>{
+      map.flyTo(p.ll, Math.max(map.getZoom(),15),{duration:.8});
+      setTimeout(()=>{ const m = markers.get(p); if(!m) return; markerLayer===clusterLayer ? clusterLayer.zoomToShowLayer(m,()=>m.openPopup()) : m.openPopup(); },850);
+      if(window.innerWidth<=760) togglePanel(false);
+    });
+    list.appendChild(li);
+  });
+  document.getElementById("count").textContent = `${vis.length} de ${P.length} lugares`;
+
+  // category counts
+  document.querySelectorAll(".cat").forEach(b=>{
+    const k = b.dataset.k;
+    b.querySelector("small").textContent = P.filter(p=>p.k===k && (!state.days.size || p.v.some(v=>state.days.has(v[0])))).length;
+  });
+
+  const info = document.getElementById("dayinfo");
+  if(state.days.size===1){ const d = DAYS[[...state.days][0]-1]; info.innerHTML = `<b>Día ${d.n}, ${d.w} ${d.f}.</b> ${esc(d.c)}: ${esc(d.t)}`; }
+  else if(state.days.size>1){ info.textContent = `${state.days.size} días seleccionados`; }
+  else info.textContent = "Mostrando todo el viaje";
+}
+
+function fitVisible(){
+  const pts = P.filter(visible).map(p=>p.ll);
+  if(pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.15),{maxZoom:15});
+}
+
+/* ---------- controls ---------- */
+const daysEl = document.getElementById("days");
+DAYS.forEach(d=>{
+  const b = document.createElement("button");
+  b.className="day"; b.type="button"; b.setAttribute("aria-pressed","false");
+  b.title = `${d.w} ${d.f} · ${d.c}: ${d.t}`;
+  b.innerHTML = `<b>${d.n}</b><span>${d.f}</span>`;
+  b.addEventListener("click",e=>{
+    if(!e.shiftKey && !e.metaKey && !e.ctrlKey){
+      const only = state.days.size===1 && state.days.has(d.n);
+      state.days.clear(); if(!only) state.days.add(d.n);
+    } else { state.days.has(d.n) ? state.days.delete(d.n) : state.days.add(d.n); }
+    document.querySelectorAll(".day").forEach((x,i)=>x.setAttribute("aria-pressed", state.days.has(i+1)));
+    render(); fitVisible();
+  });
+  daysEl.appendChild(b);
+});
+
+const catsEl = document.getElementById("cats");
+Object.entries(CATS).forEach(([k,c])=>{
+  const b = document.createElement("button");
+  b.className="cat"; b.type="button"; b.dataset.k=k; b.setAttribute("aria-pressed","true");
+  b.innerHTML = `<i style="background:${c.color}"></i>${c.label} <small></small>`;
+  b.addEventListener("click",()=>{
+    state.cats.has(k) ? state.cats.delete(k) : state.cats.add(k);
+    b.setAttribute("aria-pressed", state.cats.has(k)); render();
+  });
+  catsEl.appendChild(b);
+});
+
+const citiesEl = document.getElementById("cities");
+[["Todo el viaje",null]].concat(CITIES).forEach(([name,ll,z])=>{
+  const b = document.createElement("button"); b.className="city"; b.type="button"; b.textContent=name;
+  b.addEventListener("click",()=>{ ll ? map.flyTo(ll,z,{duration:.9}) : map.flyToBounds(L.latLngBounds(P.map(p=>p.ll)).pad(.05),{duration:.9}); if(window.innerWidth<=760) togglePanel(false); });
+  citiesEl.appendChild(b);
+});
+
+document.getElementById("must").addEventListener("change",e=>{state.must=e.target.checked;render();});
+document.getElementById("route").addEventListener("change",e=>{state.route=e.target.checked;render();});
+document.getElementById("trip").addEventListener("change",e=>{state.trip=e.target.checked;render();});
+document.getElementById("q").addEventListener("input",e=>{state.q=e.target.value.trim();render();});
+
+/* taxi card */
+const taxi = document.getElementById("taxi");
+map.on("popupopen",ev=>{
+  const btn = ev.popup.getElement().querySelector("[data-taxi]");
+  if(btn) btn.addEventListener("click",()=>{
+    const p = P[+btn.dataset.taxi];
+    document.getElementById("taxiName").textContent = p.z;
+    document.getElementById("taxiSub").textContent = p.n;
+    taxi.setAttribute("open",""); document.getElementById("taxiClose").focus();
+  });
+});
+function closeTaxi(){ taxi.removeAttribute("open"); }
+document.getElementById("taxiClose").addEventListener("click",closeTaxi);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeTaxi(); });
+
+/* mobile panel */
+const panel = document.getElementById("panel"), openBtn = document.getElementById("openPanel");
+function togglePanel(force){ const open = force ?? !panel.classList.contains("open"); panel.classList.toggle("open",open); openBtn.setAttribute("aria-expanded",open); }
+openBtn.addEventListener("click",()=>togglePanel());
+
+render();
+map.fitBounds(L.latLngBounds(P.map(p=>p.ll)).pad(.05));
+</script>
+</body>
+</html>
