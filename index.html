@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#2F5D50">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="China 2026">
-<title>Mapa del viaje · China 2026 (v3, itinerario v4)</title>
+<title>Mapa del viaje · China 2026 (v4, itinerario v5)</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,7 +135,7 @@ button,input{font:inherit;color:inherit}
   <div class="head">
     <button id="openPanel" aria-expanded="false" aria-controls="panel"><span class="sr" style="position:absolute;left:-9999px">Abrir filtros</span></button>
     <h1>China 2026, mapa del viaje</h1>
-    <p>26 oct – 12 nov · 7 destinos · basado en el itinerario v4</p>
+    <p>26 oct – 12 nov · 7 destinos · itinerario v5 con reservas reales</p>
   </div>
   <div class="scroll">
     <div class="block">
@@ -194,82 +194,84 @@ const CATS = {
 const DAYS = [
   {n:1, f:"26 oct", w:"lun", c:"Shanghái", t:"Llegada, Bund al atardecer"},
   {n:2, f:"27 oct", w:"mar", c:"Shanghái", t:"Yuyuan, Concesión Francesa, Torre de Shanghái"},
-  {n:3, f:"28 oct", w:"mié", c:"Shanghái → Pekín", t:"Tren a Pekín y pato laqueado"},
+  {n:3, f:"28 oct", w:"mié", c:"Shanghái → Pekín", t:"Tren G12 10:00 y pato laqueado"},
   {n:4, f:"29 oct", w:"jue", c:"Pekín", t:"Tiananmen, Ciudad Prohibida, hutongs"},
   {n:5, f:"30 oct", w:"vie", c:"Pekín", t:"Gran Muralla de Mutianyu"},
-  {n:6, f:"31 oct", w:"sáb", c:"Pekín → Xi'an", t:"Tren, muralla en bici y Barrio Musulmán"},
+  {n:6, f:"31 oct", w:"sáb", c:"Pekín → Xi'an", t:"Tren G351 07:55, muralla en bici y Barrio Musulmán"},
   {n:7, f:"1 nov",  w:"dom", c:"Xi'an", t:"Guerreros de Terracota, Datang"},
-  {n:8, f:"2 nov",  w:"lun", c:"Xi'an → Chongqing", t:"Vuelo, Liziba, Hongyadong y hot pot"},
-  {n:9, f:"3 nov",  w:"mar", c:"Chongqing", t:"Teleférico, Shibati, museo, crucero"},
-  {n:10,f:"4 nov",  w:"mié", c:"Chongqing → Furong", t:"Tren y Furong iluminado"},
-  {n:11,f:"5 nov",  w:"jue", c:"Furong → Zhangjiajie", t:"Mañana en Furong y Tianmen"},
-  {n:12,f:"6 nov",  w:"vie", c:"Zhangjiajie", t:"Parque Forestal: Yuanjiajie y Tianzi"},
-  {n:13,f:"7 nov",  w:"sáb", c:"Zhangjiajie → Yiwu", t:"Tren (~7,5 h) y mercado nocturno"},
+  {n:8, f:"2 nov",  w:"lun", c:"Xi'an → Chongqing", t:"Vuelo 07:55, Shibati, Liziba, Hongyadong y hot pot"},
+  {n:9, f:"3 nov",  w:"mar", c:"Chongqing", t:"Teleférico, museo, crucero"},
+  {n:10,f:"4 nov",  w:"mié", c:"Chongqing → Furong", t:"Trenes G1473 + G6079 y Furong iluminado"},
+  {n:11,f:"5 nov",  w:"jue", c:"Furong → Zhangjiajie", t:"Mañana en Furong y Tianmen por la tarde"},
+  {n:12,f:"6 nov",  w:"vie", c:"Zhangjiajie", t:"Parque Forestal (ida y vuelta desde la ciudad)"},
+  {n:13,f:"7 nov",  w:"sáb", c:"Zhangjiajie → Yiwu", t:"Mañana libre (plan B Tianmen) y tren G221 14:39"},
   {n:14,f:"8 nov",  w:"dom", c:"Yiwu", t:"Fotang y Palacio Qin (Hengdian)"},
-  {n:15,f:"9 nov",  w:"lun", c:"Yiwu", t:"Mercado D1 y D6"},
-  {n:16,f:"10 nov", w:"mar", c:"Yiwu", t:"Mercado D3, D5, D4 y agente"},
-  {n:17,f:"11 nov", w:"mié", c:"Yiwu → Shanghái", t:"Cierre con proveedores, cena de despedida"},
-  {n:18,f:"12 nov", w:"jue", c:"Shanghái", t:"Museo Este y vuelo de regreso 18:15"}
+  {n:15,f:"9 nov",  w:"lun", c:"Yiwu", t:"Mercado D1, D6 y D4; mercado nocturno"},
+  {n:16,f:"10 nov", w:"mar", c:"Yiwu", t:"Mercado D3 y D5; cierre con proveedores y agente"},
+  {n:17,f:"11 nov", w:"mié", c:"Yiwu → Shanghái", t:"Tren G3132 10:02 y Shanghai Disneyland"},
+  {n:18,f:"12 nov", w:"jue", c:"Shanghái", t:"Disneytown y vuelo de regreso 18:15"}
 ];
 
 const CITIES = [
-  ["Shanghái",[31.225,121.50],12],["Pekín",[40.10,116.45],9],["Xi'an",[34.30,109.05],10],["Chongqing",[29.558,106.565],13],
+  ["Shanghái",[31.20,121.57],11],["Pekín",[40.10,116.45],9],["Xi'an",[34.30,109.05],10],["Chongqing",[29.558,106.565],13],
   ["Furong",[28.7431,109.9462],15],["Zhangjiajie",[29.23,110.47],10],["Yiwu",[29.27,120.15],11]
 ];
-const TRIP = [[31.2400,121.4905],[39.9120,116.4110],[34.2610,108.9430],[29.5578,106.5773],[28.7431,109.9462],[29.1170,110.4790],[29.3470,110.5300],[29.3397,120.1111],[31.2380,121.5000]];
+const TRIP = [[31.2385,121.4800],[39.9240,116.4340],[34.2615,108.9440],[29.5610,106.5780],[28.7435,109.9465],[29.1175,110.4795],[29.3196,120.1022],[31.1440,121.6570]];
 
 /* v: [día, hora, qué se hace ahí]. ap = ubicación aproximada */
+/* Hoteles: el nombre en chino es la ZONA; para el taxista mostrar la dirección en chino que envía cada hotel. */
 const P = [
- {n:"Aeropuerto Pudong T2", z:"上海浦东国际机场 T2航站楼", c:"Shanghái", k:"transporte", ll:[31.1512,121.8030], v:[[1,"09:15","Llegada vuelo internacional"],[18,"14:30","Vuelo internacional 18:15"]], note:"El 12-nov salir del hotel a más tardar 13:30."},
- {n:"Hotel zona Bund / Nanjing Rd Este", z:"外滩 / 南京东路", c:"Shanghái", k:"hotel", ll:[31.2400,121.4850], ap:1, v:[[1,"12:30","Check-in"],[3,"08:30","Check-out"]], note:"Noches del 26 y 27 de octubre. Marcador en la zona; ubicar el hotel definitivo al reservar."},
+ {n:"Shanghai Disneyland", z:"上海迪士尼乐园", c:"Shanghái", k:"turismo", must:1, ll:[31.1440,121.6570], v:[[17,"14:45","Tarde-noche hasta el cierre; fuegos ~30 min antes del cierre"]], cost:500, res:"SÍ: entrada fechada con pasaporte (¥475–799 según la fecha)", note:"Horario de cierre publicado ~2 semanas antes. Evaluar Premier Access para la media jornada.", keto:"Pierna de pavo asada (火鸡腿) o carnes a la parrilla, sin pan."},
+ {n:"Disneytown", z:"迪士尼小镇", c:"Shanghái", k:"comida", ll:[31.1415,121.6640], ap:1, v:[[17,"13:35","Almuerzo rápido"],[18,"09:00","Mañana libre: paseo y compras (entrada libre)"]], cost:80, keto:"Carnes a la parrilla, sin pan ni papas."},
+ {n:"Lao Sun Jia (sopa de cordero)", z:"老孙家（东大街）", c:"Xi'an", k:"comida", ll:[34.2605,108.9480], ap:1, v:[[6,"13:05","Almuerzo al llegar"]], cost:70, keto:"Sopa de cordero sin pan (羊肉汤，不要馍)."},
+ {n:"Aeropuerto Pudong T2", z:"上海浦东国际机场 T2航站楼", c:"Shanghái", k:"transporte", ll:[31.1512,121.8030], v:[[1,"09:15","Llegada vuelo internacional"],[18,"15:00","Vuelo 18:15 (llegar a más tardar 15:15)"]], note:"Internacional: 3 h antes."},
+ {n:"Shanghai Rezen Estelle Hotel (Nanjing Road Walkway, Bund)", z:"南京东路步行街·外滩 (Rezen Estelle Hotel)", c:"Shanghái", k:"hotel", ll:[31.2385,121.4800], ap:1, v:[[1,"12:30","Check-in"],[3,"07:45","Check-out; salir a las 08:00"]], note:"Noches del 26 y 27 de octubre. Reserva 1658115239429330."},
  {n:"Jia Jia Tang Bao", z:"佳家汤包（黄河路）", c:"Shanghái", k:"comida", ll:[31.2375,121.4690], ap:1, v:[[1,"12:45","Almuerzo"]], cost:60, keto:"Pollo blanco cocido (白切鸡) o camarones salteados (清炒虾仁). Evitar las empanadillas."},
  {n:"Nanjing Road peatonal", z:"南京东路步行街", c:"Shanghái", k:"turismo", ll:[31.2360,121.4780], v:[[1,"16:30","Paseo hacia el Bund"]]},
- {n:"El Bund", z:"外滩", c:"Shanghái", k:"turismo", must:1, ll:[31.2400,121.4905], v:[[1,"17:30","Atardecer y luces"],[17,"20:30","Último paseo nocturno"]], note:"Atardecer ~17:15; luces del skyline desde ~18:00."},
+ {n:"El Bund", z:"外滩", c:"Shanghái", k:"turismo", must:1, ll:[31.2400,121.4905], v:[[1,"17:30","Atardecer y luces"]], note:"Atardecer ~17:15; luces del skyline desde ~18:00."},
  {n:"Jardín Yuyuan y Templo del Dios de la Ciudad", z:"豫园 / 城隍庙", c:"Shanghái", k:"turismo", must:1, ll:[31.2272,121.4921], v:[[2,"09:00","Visita a la apertura"]], cost:40, res:"Recomendable (online)"},
  {n:"Nanxiang Mantou Dian", z:"南翔馒头店", c:"Shanghái", k:"comida", ll:[31.2270,121.4908], ap:1, v:[[2,"11:15","Almuerzo"]], cost:80, keto:"Camarones salteados (清炒虾仁) y verduras con ajo (蒜蓉青菜)."},
  {n:"Wukang Mansion · Concesión Francesa", z:"武康大楼 / 安福路", c:"Shanghái", k:"turismo", ll:[31.2046,121.4370], v:[[2,"13:00","Paseo y café"]], cost:60},
  {n:"Torre de Shanghái (mirador)", z:"上海中心大厦", c:"Shanghái", k:"turismo", must:1, ll:[31.2335,121.5055], v:[[2,"17:30","Atardecer pisos 118–119"]], cost:180, res:"Sí (horario ~17:00)"},
  {n:"IFC Mall Pudong", z:"国金中心", c:"Shanghái", k:"comida", ll:[31.2370,121.5010], v:[[2,"19:00","Cena"]], cost:150, keto:"Steakhouse (res) o pescado al vapor, sin arroz."},
- {n:"Estación Shanghái Hongqiao", z:"上海虹桥站", c:"Shanghái", k:"transporte", ll:[31.1945,121.3200], v:[[3,"09:30","Tren a Pekín ~10:15"],[17,"16:00","Llegada desde Yiwu"]], note:"Metro L2 directo a Lujiazui (~50 min)."},
- {n:"Hotel zona Lujiazui", z:"陆家嘴", c:"Shanghái", k:"hotel", ll:[31.2380,121.5000], ap:1, v:[[17,"17:15","Check-in"],[18,"12:45","Check-out"]], note:"Noche del 11-nov, con vista al río."},
- {n:"Museo de Shanghái Este", z:"上海博物馆东馆", c:"Shanghái", k:"turismo", ll:[31.2275,121.5440], ap:1, v:[[18,"09:30","Última visita"]], res:"Sí (reserva)"},
+ {n:"Estación Shanghái Hongqiao", z:"上海虹桥站", c:"Shanghái", k:"transporte", ll:[31.1945,121.3200], v:[[3,"08:50","Tren G12 10:00 (llegar a más tardar 09:00)"],[17,"11:59","Llegada G3132; taxi ~1 h al hotel junto a Disney"]], note:"Estación enorme: llegar 60 min antes."},
+ {n:"Shanghai Pudong Longying Hotel (zona Disney)", z:"上海国际旅游度假区 (Longying Hotel)", c:"Shanghái", k:"hotel", ll:[31.1500,121.6700], ap:1, v:[[17,"13:15","Check-in / dejar maletas"],[18,"13:00","Check-out; salir al aeropuerto 14:30"]], note:"Noche del 11-nov. Reserva 1658115323435213. ~25–30 min a Pudong."},
 
- {n:"Hotel en Wulingyuan", z:"武陵源（标志门附近）", c:"Zhangjiajie", k:"hotel", ll:[29.3470,110.5300], ap:1, v:[[12,"07:30","Dejar maletas temprano"],[13,"07:15","Check-out"]], note:"Noche del 6 de noviembre."},
- {n:"Entrada Wulingyuan al Parque Forestal", z:"武陵源门票站（标志门）", c:"Zhangjiajie", k:"turismo", ll:[29.3460,110.5315], ap:1, v:[[12,"07:30","Ingreso (entrada válida 4 días)"]], cost:225, res:"Sí (online, pasaporte)"},
+ {n:"Entrada Wulingyuan al Parque Forestal", z:"武陵源门票站（标志门）", c:"Zhangjiajie", k:"turismo", ll:[29.3460,110.5315], ap:1, v:[[12,"07:30","Ingreso (taxi desde la ciudad a las 06:45)"]], cost:225, res:"Sí (online, pasaporte)"},
  {n:"Ascensor Bailong", z:"百龙天梯", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.3515,110.4615], v:[[12,"08:15","Subida de 326 m"]], cost:65},
  {n:"Yuanjiajie · Montaña Aleluya (Avatar)", z:"袁家界（哈利路亚山）", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.3545,110.4540], ap:1, v:[[12,"09:00","Circuito ~3 km"],[12,"11:30","Almuerzo en área de servicio"]], keto:"Comida del parque = arroz y fideos: llevar huevos de té (茶叶蛋), salchichas y nueces."},
  {n:"Tianzi Shan", z:"天子山（御笔峰）", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.3950,110.4600], ap:1, v:[[12,"13:00","Miradores; baja en teleférico 15:00"]], cost:72},
- {n:"Estación Zhangjiajie Oeste", z:"张家界西站", c:"Zhangjiajie", k:"transporte", ll:[29.17086,110.45699], v:[[10,"13:00","Llegada desde Chongqing; tren a Furongzhen ~13:45"],[11,"11:05","Llegada desde Furong"],[13,"08:30","Tren a Yiwu ~09:15"]], note:"No confundir con la estación 'Zhangjiajie' (trenes lentos). Almuerzo del 4-nov aquí.", keto:"Día 10: comida de estación = arroz; llevar snacks keto."},
- {n:"Teleférico de Tianmen (estación inferior)", z:"天门山索道下站", c:"Zhangjiajie", k:"turismo", ll:[29.1170,110.4790], ap:1, v:[[11,"12:15","Tramo inferior hasta la estación intermedia"],[11,"16:45","Regreso"]], cost:275, res:"Sí (online; entrada hasta las 16:00)", note:"El tramo superior (intermedia → cumbre) está cerrado por renovación desde nov-2025: se sube en bus por las 99 curvas y escaleras mecánicas. Confirmar ruta vigente."},
- {n:"Montaña Tianmen y Puerta del Cielo", z:"天门山 / 天门洞", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.0530,110.4810], ap:1, v:[[11,"12:45","Bus 99 curvas → Puerta del Cielo"],[11,"14:15","Escaleras a la cumbre y pasarela de vidrio"]], cost:5, keto:"Opciones limitadas: snacks propios + huevos o pollo si hay."},
+ {n:"Estación Zhangjiajie Oeste", z:"张家界西站", c:"Zhangjiajie", k:"transporte", ll:[29.17086,110.45699], v:[[10,"13:22","Llegada G1473; conexión G6079 15:10"],[11,"12:21","Llegada G6498"],[13,"13:25","Tren G221 14:39 (llegar a más tardar 13:40)"]], note:"No confundir con la estación 'Zhangjiajie' (trenes lentos). Almuerzo del 4-nov aquí.", keto:"Día 10: comida de estación = arroz; llevar snacks keto."},
+ {n:"Teleférico de Tianmen (estación inferior)", z:"天门山索道下站", c:"Zhangjiajie", k:"turismo", ll:[29.1170,110.4790], ap:1, v:[[11,"13:35","Tramo inferior hasta la estación intermedia"],[11,"16:50","Regreso"],[13,"08:00","PLAN B si el 5-nov hubo niebla (volver 12:00)"]], cost:275, res:"Sí (online; entrada hasta las 16:00)", note:"El tramo superior (intermedia → cumbre) está cerrado por renovación desde nov-2025: se sube en bus por las 99 curvas y escaleras mecánicas. Confirmar ruta vigente."},
+ {n:"Montaña Tianmen y Puerta del Cielo", z:"天门山 / 天门洞", c:"Zhangjiajie", k:"turismo", must:1, ll:[29.0530,110.4810], ap:1, v:[[11,"14:15","Bus 99 curvas → Puerta del Cielo"],[11,"15:35","Cumbre, pasarela de vidrio (versión corta)"]], cost:5, keto:"Opciones limitadas: snacks propios + huevos o pollo si hay."},
 
- {n:"Hotel junto al teleférico de Tianmen", z:"天门山索道站附近", c:"Zhangjiajie", k:"hotel", ll:[29.1180,110.4800], ap:1, v:[[11,"11:05","Dejar maletas"],[12,"06:45","Check-out"]], note:"Noche del 5 de noviembre."},
- {n:"Calle Xibu / Hu Shifu Sanxiaguo", z:"溪布街 / 胡师傅三下锅", c:"Zhangjiajie", k:"comida", ll:[29.1250,110.4780], ap:1, v:[[11,"19:00","Cena"]], cost:100, keto:"Sanxiaguo de cerdo y res, sin fideos ni papa."},
- {n:"Pueblo antiguo de Furong", z:"芙蓉镇", c:"Furong", k:"turismo", must:1, ll:[28.7431,109.9462], v:[[10,"16:30","De día y al atardecer"],[10,"19:45","Cascada iluminada de noche"],[11,"08:15","Paseo matutino"]], cost:80, res:"Entrada al área escénica (verificar)", note:"La estación Furongzhen está a ~6 km (10–15 min en taxi).", keto:"Cena Tujia: cerdo ahumado con ají (腊肉炒辣椒) o pescado a la parrilla, sin azúcar (不要糖)."},
- {n:"Hotel / hostal en Furong", z:"芙蓉镇景区内（瀑布景观）民宿", c:"Furong", k:"hotel", ll:[28.7440,109.9472], ap:1, v:[[10,"14:45","Check-in"],[11,"09:45","Check-out"]], note:"Elegir con vista a la cascada."},
+ {n:"Vienna 3 Best Hotel (Tianmenshan Cableway Station)", z:"维也纳3好酒店 · 天门山索道站", c:"Zhangjiajie", k:"hotel", ll:[29.1180,110.4800], ap:1, v:[[11,"12:35","Dejar maletas"],[11,"18:00","Check-in"],[13,"12:40","Check-out; salir 13:10"]], note:"Noches del 5 y 6 de noviembre (VERIFICAR que la reserva cubra 2 noches). Reserva 1658115323234870."},
+ {n:"Calle Xibu / Hu Shifu Sanxiaguo", z:"溪布街 / 胡师傅三下锅", c:"Zhangjiajie", k:"comida", ll:[29.1250,110.4780], ap:1, v:[[11,"19:00","Cena en la calle Xibu"],[12,"18:30","Cena en Hu Shifu Sanxiaguo"]], cost:100, keto:"Sanxiaguo de cerdo y res, sin fideos ni papa."},
+ {n:"Pueblo antiguo de Furong", z:"芙蓉镇", c:"Furong", k:"turismo", must:1, ll:[28.7431,109.9462], v:[[10,"16:30","Atardecer y sendero detrás de la cascada"],[10,"19:30","Cascada iluminada de noche"],[11,"08:15","Paseo matutino"]], cost:80, res:"Entrada al área escénica (verificar)", note:"La estación Furongzhen está a ~6 km (10–15 min en taxi).", keto:"Cena Tujia: cerdo ahumado con ají (腊肉炒辣椒) o pescado a la parrilla, sin azúcar (不要糖)."},
+ {n:"12C · Core Location View Homestay", z:"芙蓉镇景区内（瀑布景观）民宿", c:"Furong", k:"hotel", ll:[28.7440,109.9472], ap:1, v:[[10,"16:05","Check-in"],[11,"10:50","Check-out; salir a la estación 11:00"]], note:"Vista a la cascada iluminada. Reserva 1658115322848960. Preguntar por recogida en la estación."},
 
- {n:"Estación Chongqing Este / Norte", z:"重庆东站 / 重庆北站", c:"Chongqing", k:"transporte", ll:[29.5150,106.6600], ap:1, v:[[10,"09:45","Tren a Zhangjiajie Oeste ~10:30"]], note:"Marcador aproximado; la estación depende del tren elegido (Este o Norte)."},
- {n:"Hotel zona Jiefangbei", z:"解放碑（渝中区）", c:"Chongqing", k:"hotel", ll:[29.5578,106.5773], v:[[8,"14:15","Check-in"],[10,"08:30","Check-out"]], note:"Noches del 2 y 3 de noviembre."},
+ {n:"Estación de Chongqing (ver billete G1473)", z:"重庆东站 / 重庆北站", c:"Chongqing", k:"transporte", ll:[29.5150,106.6600], ap:1, v:[[10,"09:30","Tren G1473 10:40 (llegar a más tardar 09:40)"]], note:"VERIFICAR en el billete si sale de Chongqing Norte, Este u Oeste."},
+ {n:"Homeinn Selected (Jiefangbei / Hongyadong)", z:"如家精选酒店 · 解放碑 / 洪崖洞", c:"Chongqing", k:"hotel", ap:1, ll:[29.5610,106.5780], v:[[8,"10:50","Dejar maletas; check-in 14:00"],[10,"08:15","Check-out; salir 08:40"]], note:"Noches del 2 y 3 de noviembre. Reserva 1658115239630736."},
  {n:"Hongyadong", z:"洪崖洞", c:"Chongqing", k:"turismo", must:1, ll:[29.5630,106.5790], v:[[8,"18:00","Iluminado de noche"]], note:"Mejor foto desde el puente Qiansimen."},
  {n:"Hot pot de Chongqing", z:"重庆火锅（解放碑）", c:"Chongqing", k:"comida", ll:[29.5592,106.5760], ap:1, v:[[8,"19:15","Cena"]], cost:120, keto:"IDEAL keto: res, cordero, cerdo, camarón y pescado + verduras. Olla mitad suave (鸳鸯锅). Salsa: aceite de sésamo con ajo."},
  {n:"Teleférico del río Yangtsé", z:"长江索道（新华路站）", c:"Chongqing", k:"turismo", ll:[29.5580,106.5850], ap:1, v:[[9,"08:30","Ir temprano"]], cost:20},
- {n:"Shibati", z:"十八梯", c:"Chongqing", k:"turismo", ll:[29.5535,106.5760], ap:1, v:[[9,"10:00","Barrio en escalinatas"]], keto:"Almuerzo 11:30: pollo picante seco sin rebozar (辣子鸡，不要淀粉)."},
+ {n:"Shibati", z:"十八梯", c:"Chongqing", k:"turismo", ll:[29.5535,106.5760], ap:1, v:[[8,"12:00","Paseo suave (adelantado del 3-nov)"]], keto:"Almuerzo 11:00: res hervida en aceite picante (水煮牛肉), sin arroz."},
  {n:"Museo de las Tres Gargantas", z:"重庆中国三峡博物馆", c:"Chongqing", k:"turismo", ll:[29.5615,106.5500], v:[[9,"13:15","Visita (martes: abierto)"]], res:"Reserva gratuita"},
  {n:"Liziba: el tren que atraviesa un edificio", z:"李子坝轻轨穿楼观景平台", c:"Chongqing", k:"turismo", must:1, ll:[29.5530,106.5340], v:[[8,"16:45","Mirador frente a la estación"]]},
  {n:"Muelle Chaotianmen · crucero Dos Ríos", z:"朝天门码头 两江游", c:"Chongqing", k:"turismo", ll:[29.5670,106.5880], v:[[9,"20:00","Crucero nocturno"]], cost:150, res:"Sí (online)", keto:"Cena 18:00: pescado a la parrilla (烤鱼) sin azúcar ni fideos."},
- {n:"Aeropuerto Jiangbei", z:"重庆江北国际机场", c:"Chongqing", k:"transporte", ll:[29.7192,106.6417], v:[[8,"12:45","Llegada desde Xi'an"]]},
+ {n:"Aeropuerto Jiangbei", z:"重庆江北国际机场", c:"Chongqing", k:"transporte", ll:[29.7192,106.6417], v:[[8,"09:30","Llegada MU2261"]]},
 
- {n:"Aeropuerto Xianyang", z:"西安咸阳国际机场", c:"Xi'an", k:"transporte", ll:[34.4471,108.7516], v:[[8,"09:45","Vuelo a Chongqing ~11:15"]], note:"Al centro ~60 min."},
- {n:"Hotel junto a la Torre de la Campana", z:"钟楼附近（城墙内）", c:"Xi'an", k:"hotel", ll:[34.2610,108.9430], ap:1, v:[[6,"14:15","Check-in"],[8,"08:30","Check-out"]], note:"Noches del 31-oct y 1-nov."},
+ {n:"Aeropuerto Xianyang — Terminal 5", z:"西安咸阳国际机场 T5航站楼", c:"Xi'an", k:"transporte", ll:[34.4471,108.7516], v:[[8,"05:50","Vuelo MU2261 07:55 (llegar a más tardar 05:55)"]], note:"Mostrador cierra 45 min antes (07:10)."},
+ {n:"Jinjiang SkanHem Hotel (Bell Tower Metro / Hui Min St)", z:"锦江 SkanHem · 钟楼地铁站 / 回民街", c:"Xi'an", k:"hotel", ll:[34.2615,108.9440], ap:1, v:[[6,"12:55","Dejar maletas; check-in 14:00"],[8,"04:40","Check-out (madrugón); salir 05:05"]], note:"Noches del 31-oct y 1-nov. Reserva 1658115239566348."},
  {n:"Muralla de Xi'an (Puerta Sur)", z:"西安城墙 永宁门（南门）", c:"Xi'an", k:"turismo", must:1, ll:[34.2510,108.9430], v:[[6,"16:00","Vuelta en bicicleta al atardecer"]], cost:100},
  {n:"Barrio Musulmán", z:"回民街", c:"Xi'an", k:"comida", ll:[34.2640,108.9400], v:[[6,"18:30","Cena de calle"]], cost:80, keto:"Brochetas de cordero o res al comino (羊肉串 / 牛肉串), sin pan."},
  {n:"Guerreros de Terracota", z:"秦始皇帝陵博物院（兵马俑）", c:"Xi'an", k:"turismo", must:1, ll:[34.3848,109.2785], v:[[7,"08:45","Fosas 1, 3 y 2 (domingo: llegar a la apertura)"]], cost:120, res:"Sí (online, pasaporte)", keto:"Almuerzo 12:30: cordero o res sin fideos."},
  {n:"Gran Pagoda de la Oca Salvaje", z:"大雁塔", c:"Xi'an", k:"turismo", ll:[34.2190,108.9640], v:[[7,"17:15","Plaza norte"]]},
  {n:"Datang Everbright City", z:"大唐不夜城", c:"Xi'an", k:"turismo", ll:[34.2120,108.9640], ap:1, v:[[7,"18:30","Cena y paseo nocturno"]], keto:"Parrilla (烧烤): res, pollo, camarón y cordero."},
- {n:"Estación Xi'an Norte", z:"西安北站", c:"Xi'an", k:"transporte", ll:[34.3760,108.9390], ap:1, v:[[6,"13:30","Llegada desde Pekín"]], keto:"Llevar snacks keto para el tren."},
+ {n:"Estación Xi'an Norte", z:"西安北站", c:"Xi'an", k:"transporte", ll:[34.3760,108.9390], ap:1, v:[[6,"12:05","Llegada G351; metro L2 al hotel"]], keto:"Llevar snacks keto para el tren."},
 
- {n:"Estación Pekín Oeste", z:"北京西站", c:"Pekín", k:"transporte", ll:[39.8950,116.3220], v:[[6,"08:45","Tren a Xi'an ~09:10"]]},
- {n:"Hotel zona Wangfujing", z:"王府井（东城区）", c:"Pekín", k:"hotel", ll:[39.9120,116.4110], ap:1, v:[[3,"15:30","Check-in"],[6,"07:45","Check-out"]], note:"Noches del 28, 29 y 30 de octubre."},
+ {n:"Estación Pekín Oeste", z:"北京西站", c:"Pekín", k:"transporte", ll:[39.8950,116.3220], v:[[6,"06:35","Tren G351 07:55 (llegar a más tardar 06:55)"]]},
+ {n:"Jialong Hotel (Beijing Chaoyangmen)", z:"北京朝阳门 (Jialong Hotel)", c:"Pekín", k:"hotel", ll:[39.9240,116.4340], ap:1, v:[[3,"15:25","Check-in"],[6,"05:30","Check-out (madrugón); salir 05:55"]], note:"Noches del 28, 29 y 30 de octubre. Reserva 1658115239484882. ~20 min en taxi a la Ciudad Prohibida."},
  {n:"Siji Minfu (pato laqueado)", z:"四季民福（故宫店）", c:"Pekín", k:"comida", ll:[39.9135,116.4020], ap:1, v:[[3,"18:00","Cena"]], cost:180, keto:"Cordero asado o res con cebollín (葱爆牛肉). Si prueban el pato: sin crepes ni salsa hoisin."},
  {n:"Plaza de Tiananmen", z:"天安门广场", c:"Pekín", k:"turismo", ll:[39.9030,116.3915], v:[[4,"08:15","Con pasaporte"]], res:"Verificar requisito de reserva"},
  {n:"Ciudad Prohibida (Puerta Meridiana)", z:"故宫博物院（午门）", c:"Pekín", k:"turismo", must:1, ll:[39.9135,116.3912], v:[[4,"08:45","Entrada por el sur, salida por el norte"]], cost:50, res:"SÍ: abre 7 días antes, 20:00 hora Pekín", note:"Cerrada los lunes."},
@@ -279,14 +281,14 @@ const P = [
  {n:"Donglaishun (olla de cordero)", z:"东来顺", c:"Pekín", k:"comida", ll:[39.9142,116.4105], ap:1, v:[[4,"19:00","Cena"]], cost:150, keto:"IDEAL keto: cordero y res en caldo claro; salsa de sésamo con moderación."},
  {n:"Gran Muralla de Mutianyu", z:"慕田峪长城", c:"Pekín", k:"turismo", must:1, ll:[40.4319,116.5704], v:[[5,"09:15","Teleférico, torres 14–23, tobogán"],[5,"12:20","Almuerzo en el pueblo"]], cost:195, res:"Auto privado + entradas", keto:"Trucha a la parrilla (虹鳟鱼), especialidad de Mutianyu."},
  {n:"Teatro Chaoyang (acróbatas)", z:"朝阳剧场", c:"Pekín", k:"opcional", ll:[39.9180,116.4590], ap:1, v:[[5,"19:15","Espectáculo opcional"]], cost:280, res:"Sí", keto:"Cena previa: parrilla o steakhouse."},
- {n:"Estación Pekín Sur", z:"北京南站", c:"Pekín", k:"transporte", ll:[39.8650,116.3790], v:[[3,"14:45","Llegada desde Shanghái"]], keto:"Tren de ~4,5 h: llevar snacks keto."},
+ {n:"Estación Pekín Sur", z:"北京南站", c:"Pekín", k:"transporte", ll:[39.8650,116.3790], v:[[3,"14:25","Llegada G12"]], keto:"Tren de ~4,5 h: llevar snacks keto."},
 
- {n:"Estación de Yiwu", z:"义乌站", c:"Yiwu", k:"transporte", ll:[29.38083,120.03778], v:[[13,"16:45","Llegada desde Zhangjiajie"],[17,"13:30","Tren a Shanghái ~14:10"]], note:"Al norte de la ciudad: ~30–40 min en taxi al mercado."},
- {n:"Hotel junto al Mercado Internacional", z:"国际商贸城附近（福田）", c:"Yiwu", k:"hotel", ll:[29.3360,120.1060], ap:1, v:[[13,"17:30","Check-in"],[17,"12:00","Check-out"]], note:"Noches del 7 al 10 de noviembre."},
- {n:"Mercado nocturno Binwang", z:"宾王夜市", c:"Yiwu", k:"comida", ll:[29.3060,120.0770], ap:1, v:[[13,"18:30","Cena y paseo"]], cost:80, keto:"Kebab de Oriente Medio al plato (res, cordero, pollo), sin pan ni arroz."},
+ {n:"Estación de Yiwu", z:"义乌站", c:"Yiwu", k:"transporte", ll:[29.38083,120.03778], v:[[13,"20:35","Llegada G221"],[17,"09:05","Tren G3132 10:02 (llegar a más tardar 09:15)"]], note:"Al norte de la ciudad: ~25–30 min en taxi al hotel."},
+ {n:"Kasion International Hotel Yiwu", z:"义乌市江滨北路523号 (Kasion International Hotel)", c:"Yiwu", k:"hotel", ll:[29.3196,120.1022], v:[[13,"21:20","Check-in"],[17,"08:15","Check-out; salir 08:35"]], note:"Noches del 7 al 10 de noviembre. Reserva 1658115323348347. Junto al río; ~10–15 min en taxi del mercado."},
+ {n:"Mercado nocturno Binwang", z:"宾王夜市", c:"Yiwu", k:"comida", ll:[29.3060,120.0770], ap:1, v:[[15,"18:30","Cena (a pocos minutos del hotel)"]], cost:80, keto:"Kebab de Oriente Medio al plato (res, cordero, pollo), sin pan ni arroz."},
  {n:"Pueblo antiguo de Fotang", z:"佛堂古镇", c:"Yiwu", k:"turismo", ll:[29.2170,120.0400], ap:1, v:[[14,"09:00","Calle vieja, casas Ming y Qing"],[14,"11:15","Almuerzo"]], note:"Entrada libre.", keto:"Res o cerdo salteado con verduras, sin azúcar (不要糖)."},
  {n:"Hengdian · Palacio del Emperador Qin", z:"横店影视城·秦王宫", c:"Yiwu", k:"turismo", ll:[29.1791,120.2981], ap:1, v:[[14,"13:00","Set del film Hero"]], cost:200, res:"Sí (Trip.com)", note:"Horario de invierno 8:30–16:30."},
- {n:"Mercado Internacional de Yiwu (Futian)", z:"义乌国际商贸城（福田市场）", c:"Yiwu", k:"negocio", must:1, ll:[29.33972,120.11111], v:[[15,"09:15","D1 bisutería · D6 moda y belleza"],[16,"09:00","D3 cuidado personal · D5 moto y mascotas · D4 moda"],[17,"08:30","Cierre con proveedores"]], note:"Marcador en el centro del complejo (distritos 1 a 6). Pedir en información el plano de cada distrito.", keto:"Almuerzo: restaurantes árabes y turcos junto al mercado, kebab al plato."},
+ {n:"Mercado Internacional de Yiwu (Futian)", z:"义乌国际商贸城（福田市场）", c:"Yiwu", k:"negocio", must:1, ll:[29.33972,120.11111], v:[[15,"09:00","D1 bisutería · D6 moda y belleza · D4 moda"],[16,"09:00","D3 cuidado personal · D5 moto y mascotas · CIERRE con proveedores 14:00"]], note:"Marcador en el centro del complejo (distritos 1 a 6). Pedir en información el plano de cada distrito.", keto:"Almuerzo: restaurantes árabes y turcos junto al mercado, kebab al plato."},
  {n:"Lago Xiuhu y pagoda Da'an", z:"绣湖公园 / 大安寺塔", c:"Yiwu", k:"opcional", ll:[29.3090,120.0730], ap:1, v:[[15,"20:00","Paseo nocturno opcional"]]}
 ];
 
